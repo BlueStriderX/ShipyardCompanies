@@ -29,7 +29,7 @@ public enum CompanyTechFocus {
                     "+ 1 Scanner Level\n" +
                     "+ 15% Jump Drive Inhibitor Range\n" +
                     "+ 1 Jump Drive Inhibitor Level");
-    
+
     private String displayName;
     private String description;
 
