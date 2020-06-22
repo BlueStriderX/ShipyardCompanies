@@ -13,7 +13,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../Game Files/StarMade-Dev Build/StarMade/StarMade.jar!/" />
+          <root url="jar://$MODULE_DIR$/../starloader/out/artifacts/starloader_jar/starloader.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -22,7 +22,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../starloader/out/artifacts/starloader_jar/starloader.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../Game Files/StarMade-Modded/StarMade/StarMade.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
