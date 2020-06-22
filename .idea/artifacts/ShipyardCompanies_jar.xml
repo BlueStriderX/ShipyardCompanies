@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact name="ShipyardCompanies:jar">
+    <output-path>$PROJECT_DIR$/../../Game Files/StarMade-Modded/StarMade/mods</output-path>
+    <root id="root">
+      <element id="archive" name="ShipyardCompanies.jar">
+        <element id="module-output" name="ShipyardCompanies" />
+      </element>
+    </root>
+  </artifact>
+</component>

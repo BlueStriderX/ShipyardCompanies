@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="StarLoader">
+    <CLASSES />
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../starloader/insert" />
+      <root url="file://$PROJECT_DIR$/../starloader/src" />
+    </SOURCES>
+  </library>
+</component>
