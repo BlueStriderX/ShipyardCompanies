@@ -15,12 +15,14 @@ import java.util.*;
 
 public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
 
-    private HashSet<ShipyardOrder> orders;
+    private Set<ShipyardOrder> orders;
     private GUIElementList ordersElementList;
+    private OrderListRow selectedRow;
 
-    public OrdersScrollableList(InputState inputState, float v, float v1, GUIElement guiElement, HashSet<ShipyardOrder> orders) {
+    public OrdersScrollableList(InputState inputState, float v, float v1, GUIElement guiElement, Set<ShipyardOrder> orders) {
         super(inputState, v, v1, guiElement);
         this.orders = orders;
+        selectedRow = null;
     }
 
     @Override
@@ -31,7 +33,7 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
                 return CompareTools.compare(o1.getCompletionPercent(), o2.getCompletionPercent());
             }
         });
-        this.addColumn("DESIGNER", 4.0F, new Comparator<ShipyardOrder>() {
+        this.addColumn("DESIGNER", 6.0F, new Comparator<ShipyardOrder>() {
             public int compare(ShipyardOrder o1, ShipyardOrder o2) {
                 return o1.getDesigner().getName().compareTo(o2.getDesigner().getName());
             }
@@ -54,7 +56,7 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
         this.addButton(new GUICallback() {
             public void callback(GUIElement guiElement, MouseEvent mouseEvent) {
                 if(mouseEvent.pressedLeftMouse()) {
-                    cancelOrder((OrderListRow) guiElement);
+                    cancelOrder();
                 }
             }
 
@@ -62,18 +64,21 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
                 return false;
             }
         }, "Cancel Order", ControllerElement.FilterRowStyle.RIGHT, ControllerElement.FilterPos.BOTTOM);
-        this.activeSortColumnIndex = 1;
+
+        this.activeSortColumnIndex = 0;
+    }
+
+    private void cancelOrder() {
+        if(this.selectedRow != null) {
+            orders.remove(selectedRow.getOrder());
+            updateListEntries(ordersElementList, orders);
+            //Todo:Cancel Order
+        }
     }
 
     @Override
     protected Collection<ShipyardOrder> getElementList() {
         return orders;
-    }
-
-    private void cancelOrder(OrderListRow orderRowElement) {
-        orders.remove(orderRowElement.getOrder());
-        this.updateListEntries(ordersElementList, orders);
-        //Todo: Cancel Order
     }
 
     @Override
@@ -86,13 +91,7 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
             (statusRowElement = new GUIClippedRow(this.getState())).attach(statusTextElement);
 
             GUITextOverlayTable designerTextElement;
-            String factionName = "";
-            if(order.getDesigner().isNpcOwned()) {
-                factionName = order.getDesigner().getOwnerNPCFaction().getName();
-            } else {
-                factionName = order.getDesigner().getOwnerFaction().getName();
-            }
-            (designerTextElement = new GUITextOverlayTable(10, 10, this.getState())).setTextSimple(order.getDesigner() + "\n" + factionName);
+            (designerTextElement = new GUITextOverlayTable(10, 10, this.getState())).setTextSimple(order.getDesigner().getName());
             GUIClippedRow designerRowElement;
             (designerRowElement = new GUIClippedRow(this.getState())).attach(designerTextElement);
 
@@ -102,20 +101,20 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
             (blueprintRowElement = new GUIClippedRow(this.getState())).attach(blueprintTextElement);
 
             GUITextOverlayTable massTextElement;
-            (massTextElement = new GUITextOverlayTable(10, 10, this.getState())).setTextSimple(order.getBlueprint().getMass());
+            (massTextElement = new GUITextOverlayTable(10, 10, this.getState())).setTextSimple((int) Math.ceil(order.getBlueprint().getMass()));
             GUIClippedRow massRowElement;
             (massRowElement = new GUIClippedRow(this.getState())).attach(massTextElement);
 
             GUITextOverlayTable costTextElement;
-            (costTextElement = new GUITextOverlayTable(10, 10, this.getState())).setTextSimple(order.getPrice());
+            (costTextElement = new GUITextOverlayTable(10, 10, this.getState())).setTextSimple((int) Math.ceil(order.getPrice()));
             GUIClippedRow costRowElement;
             (costRowElement = new GUIClippedRow(this.getState())).attach(costTextElement);
 
             OrderListRow orderListRow;
             (orderListRow = new OrderListRow(this.getState(), order, statusRowElement, designerRowElement, blueprintRowElement, massRowElement, costRowElement)).onInit();
             guiElementList.addWithoutUpdate(orderListRow);
-            this.orders.add(order);
         }
+        orders = set;
         ordersElementList = guiElementList;
         ordersElementList.updateDim();
     }
@@ -136,7 +135,14 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
         public OrderListRow(InputState inputState, ShipyardOrder shipyardOrder, GUIElement... guiElements) {
             super(inputState, shipyardOrder, guiElements);
             this.highlightSelect = true;
+            this.highlightSelectSimple = true;
             order = shipyardOrder;
+        }
+
+        @Override
+        public void clickedOnRow() {
+            super.clickedOnRow();
+            OrdersScrollableList.this.selectedRow = this;
         }
 
         public ShipyardOrder getOrder() {
