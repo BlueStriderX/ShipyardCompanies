@@ -33,7 +33,7 @@ public class ShipyardCompanies extends StarMod {
     public void onGameStart() {
         this.modName = "ShipyardCompanies";
         this.modAuthor = "DovTech";
-        this.modVersion = "0.1.15";
+        this.modVersion = "0.1.16";
         this.modDescription = "Adds Shipyard Design companies which can manufacture and produce ships.";
     }
 
