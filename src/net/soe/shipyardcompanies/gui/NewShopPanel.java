@@ -48,44 +48,12 @@ public class NewShopPanel extends ShopPanelNew {
         ordersList.updateListEntries(orderElementList, orders);
         this.shipyardsTab.getContent(0).attach(ordersList);
 
-
-
         this.shipyardsTab.addNewTextBox(200);
-        GUIAncor companyList = new GUIAncor(inputState, 80.0F, 200.0F);
-        ArrayList<ShipyardCompany> companies = ShipyardCompanies.getInst().getCompanies();
-
-        //Debug Testing
-        companies.add(testCompany);
-
-        for(ShipyardCompany company : companies) {
-            GUIHorizontalArea.HButtonType buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_NEUTRAL_NORMAL; //Neutral to Faction (Can order from them, Default Style)
-            /*
-            //Todo:Need to check if player is actually in a faction for the below to work, will implement later
-            if(company.isNpcOwned() && company.getOwnerNPCFaction().getEnemies() != null && company.getOwnerNPCFaction().getEnemies().contains(this.getOwnFaction())) {
-                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_RED_LIGHT; //Enemy to NPC Faction (Cant order from them)
-            } else if(!(company.isNpcOwned() && company.getOwnerFaction().getEnemies() == null) && company.getOwnerFaction().getEnemies().contains(new Faction(this.getOwnFaction()))) {
-                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_RED_MEDIUM; //Enemy to Player Faction (Cant order from them)
-            } else if(!(company.isNpcOwned()) && company.getOwnerFaction().getAllies() != null && company.getOwnerFaction().getAllies().contains(new Faction(this.getOwnFaction()))) {
-                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_BLUE_MEDIUM; //Ally to Player Faction (Can order from them)
-            }
-             */
-
-            String factionName = "";
-            if(company.isNpcOwned()) {
-                factionName = " - [" + company.getOwnerNPCFaction().getName() + "]";
-            } else {
-                factionName = " - [" + company.getOwnerFaction().getName() + "]";
-            }
-            String companyText = company.getName() + factionName + "\n" + company.getDescription() + "\n" + company.getTechFocus().getDisplayName() + "\n" + company.getTechFocus().getDescription();
-            GUITextOverlay companyDescription;
-            (companyDescription = new GUITextOverlay(10, 10, FontLibrary.getBlenderProBook16(), this.getState())).setTextSimple(companyText);
-            companyDescription.setPos(4.0F, 4.0F, 0.0F);
-
-            companyList.attach(companyDescription);
-        }
-
-        GUIScrollablePanel companyPanel = new GUIScrollablePanel(80.0F, 200.0F, inputState);
-        companyPanel.setContent(companyList);
-        this.shipyardsTab.getContent(1).attach(companyPanel);
+        HashSet<ShipyardCompany> companies = new HashSet<ShipyardCompany>();
+        companies.add(testCompany); //For Debug Testing
+        companies.addAll(ShipyardCompanies.getInst().getCompanies());
+        CompaniesScrollableList companiesList;
+        (companiesList = new CompaniesScrollableList(inputState, 80.0F, 200.0F, this.shipyardsTab.getContent(1), companies)).onInit();
+        this.shipyardsTab.getContent(1).attach(companiesList);
     }
 }
