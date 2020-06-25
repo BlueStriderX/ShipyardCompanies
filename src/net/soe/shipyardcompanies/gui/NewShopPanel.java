@@ -4,16 +4,16 @@ import api.faction.Faction;
 import net.soe.shipyardcompanies.ShipyardCompanies;
 import net.soe.shipyardcompanies.shipyards.CompanyTechFocus;
 import net.soe.shipyardcompanies.shipyards.ShipyardCompany;
+import net.soe.shipyardcompanies.shipyards.ShipyardOrder;
 import org.schema.game.client.view.gui.shop.shopnew.ShopPanelNew;
-import org.schema.schine.graphicsengine.core.MouseEvent;
+import org.schema.game.server.controller.BluePrintController;
+import org.schema.game.server.data.blueprintnw.BlueprintEntry;
 import org.schema.schine.graphicsengine.forms.font.FontLibrary;
 import org.schema.schine.graphicsengine.forms.gui.*;
-import org.schema.schine.graphicsengine.forms.gui.newgui.GUIContentPane;
-import org.schema.schine.graphicsengine.forms.gui.newgui.GUIHorizontalArea;
-import org.schema.schine.graphicsengine.forms.gui.newgui.GUIHorizontalButtonExpandable;
+import org.schema.schine.graphicsengine.forms.gui.newgui.*;
 import org.schema.schine.input.InputState;
-
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class NewShopPanel extends ShopPanelNew {
 
@@ -33,64 +33,59 @@ public class NewShopPanel extends ShopPanelNew {
     }
 
     private void createShipyardsPane() {
-        /*
-        GUITextOverlay textOverlay;
-        (textOverlay = new GUITextOverlay(10, 10, FontLibrary.getBlenderProMedium20(), this.getState())).setTextSimple("SHIPYARDS");
-
-        this.shipyardsTab.setTextBoxHeightLast(110);
-        this.shipyardsTab.addNewTextBox(10);
-        textOverlay.setPos(4.0F, 4.0F, 0.0F);
-        this.shipyardsTab.getContent(0).attach(textOverlay);
-         */
-        this.shipyardsTab.setTextBoxHeightLast(85);
-
-        GUITextOverlay ordersOverlay;
-        (ordersOverlay = new GUITextOverlay(10, 10, FontLibrary.getBlenderProBook16(), this.getState())).setTextSimple("Current Orders:");
-        ordersOverlay.setPos(4.0F, 4.0F, 0.0F);
-        this.shipyardsTab.getContent(0).attach(ordersOverlay);
-
-        GUIElementList companyList = new GUIElementList(inputState);
-        ArrayList<ShipyardCompany> companies = ShipyardCompanies.getInst().getCompanies();
+        this.shipyardsTab.setTextBoxHeightLast(200);
+        HashSet<ShipyardOrder> orders = new HashSet<ShipyardOrder>();
 
         //Debug Testing
         String testDescription = "THE DOVAN PEOPLE ARE THE GREATEST IN ALL THE UNIVERSE";
-        companies.add(new ShipyardCompany(new Faction(this.getOwnFaction()), "Dovan Lawncare Services", testDescription, CompanyTechFocus.MUNITIONS));
+        ShipyardCompany testCompany = new ShipyardCompany(new Faction(this.getOwnFaction()), "Dovan Lawncare Services", testDescription, CompanyTechFocus.MUNITIONS);
+        BlueprintEntry testBlueprint = BluePrintController.stationsTradingGuild.readBluePrints().get(0);
+        orders.add(new ShipyardOrder(testCompany, new Faction(this.getOwnFaction()), testBlueprint, 300000));
+
+        OrdersScrollableList ordersList;
+        (ordersList = new OrdersScrollableList(inputState, 80.0F, 200.0F, this.shipyardsTab.getContent(0), orders)).onInit();
+        GUIElementList orderElementList = new GUIElementList(inputState);
+        ordersList.updateListEntries(orderElementList, orders);
+        this.shipyardsTab.getContent(0).attach(ordersList);
+
+
+
+        this.shipyardsTab.addNewTextBox(200);
+        GUIAncor companyList = new GUIAncor(inputState, 80.0F, 200.0F);
+        ArrayList<ShipyardCompany> companies = ShipyardCompanies.getInst().getCompanies();
+
+        //Debug Testing
+        companies.add(testCompany);
 
         for(ShipyardCompany company : companies) {
-            GUIListElement companyElement = new GUIListElement(inputState);
             GUIHorizontalArea.HButtonType buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_NEUTRAL_NORMAL; //Neutral to Faction (Can order from them, Default Style)
-            if(company.isNpcOwned() && company.getOwnerNPCFaction().getEnemies().contains(this.getOwnFaction())) { //Enemy to NPC Faction (Cant order from them)
-                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_RED_LIGHT;
-            } else if(company.isNpcOwned() && !(company.getOwnerNPCFaction().getEnemies().contains(this.getOwnFaction()))) { //Neutral to NPC Faction (Can order from them)
-                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_BLUE_SCNLINE_GREY;
-            } else if(company.getOwnerFaction().getAllies().contains(new Faction(this.getOwnFaction())) && !(company.isNpcOwned())) { //Ally to Player Faction (Can order from them)
-                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_BLUE_MEDIUM;
-            } else if(company.getOwnerFaction().getEnemies().contains(new Faction(this.getOwnFaction()))&& !(company.isNpcOwned())) { //Enemy to Player Faction (Cant order from them)
-                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_RED_MEDIUM;
+            /*
+            //Todo:Need to check if player is actually in a faction for the below to work, will implement later
+            if(company.isNpcOwned() && company.getOwnerNPCFaction().getEnemies() != null && company.getOwnerNPCFaction().getEnemies().contains(this.getOwnFaction())) {
+                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_RED_LIGHT; //Enemy to NPC Faction (Cant order from them)
+            } else if(!(company.isNpcOwned() && company.getOwnerFaction().getEnemies() == null) && company.getOwnerFaction().getEnemies().contains(new Faction(this.getOwnFaction()))) {
+                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_RED_MEDIUM; //Enemy to Player Faction (Cant order from them)
+            } else if(!(company.isNpcOwned()) && company.getOwnerFaction().getAllies() != null && company.getOwnerFaction().getAllies().contains(new Faction(this.getOwnFaction()))) {
+                buttonStyle = GUIHorizontalArea.HButtonType.BUTTON_BLUE_MEDIUM; //Ally to Player Faction (Can order from them)
             }
+             */
 
-            GUIHorizontalButtonExpandable companyButton = new GUIHorizontalButtonExpandable(this.getState(), buttonStyle, company.getName(), this);
-            String companyText = company.getName() + "\n" + company.getDescription() + "\n" + company.getTechFocus().getDisplayName() + "\n" + company.getTechFocus().getDescription();
+            String factionName = "";
+            if(company.isNpcOwned()) {
+                factionName = " - [" + company.getOwnerNPCFaction().getName() + "]";
+            } else {
+                factionName = " - [" + company.getOwnerFaction().getName() + "]";
+            }
+            String companyText = company.getName() + factionName + "\n" + company.getDescription() + "\n" + company.getTechFocus().getDisplayName() + "\n" + company.getTechFocus().getDescription();
             GUITextOverlay companyDescription;
             (companyDescription = new GUITextOverlay(10, 10, FontLibrary.getBlenderProBook16(), this.getState())).setTextSimple(companyText);
             companyDescription.setPos(4.0F, 4.0F, 0.0F);
-            companyButton.attach(companyDescription);
-            companyElement.getContent().attach(companyButton);
-            companyList.add(companyElement);
+
+            companyList.attach(companyDescription);
         }
 
-        this.shipyardsTab.getContent(1).attach(companyList);
-
-        /* Debug Testing
-        String testDescription = "THE DOVAN PEOPLE ARE THE GREATEST IN ALL THE UNIVERSE";
-        ShipyardCompany testCompany = new ShipyardCompany(new Faction(this.getOwnFaction()), "Dovan Lawncare Services", testDescription, CompanyTechFocus.MUNITIONS);
-        String companyText = testCompany.getName() + "\n" + testCompany.getDescription() + "\n" + testCompany.getTechFocus().getDisplayName() + "\n" + testCompany.getTechFocus().getDescription();
-
-        GUITextOverlay testCompanyOverlay;
-        (testCompanyOverlay = new GUITextOverlay(10, 10, FontLibrary.getBlenderProBook16(), this.getState())).setTextSimple(companyText);
-        this.shipyardsTab.addNewTextBox(85);
-        testCompanyOverlay.setPos(4.0F, 4.0F, 0.0F);
-        this.shipyardsTab.getContent(1).attach(testCompanyOverlay);
-         */
+        GUIScrollablePanel companyPanel = new GUIScrollablePanel(80.0F, 200.0F, inputState);
+        companyPanel.setContent(companyList);
+        this.shipyardsTab.getContent(1).attach(companyPanel);
     }
 }
