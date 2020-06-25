@@ -1,29 +1,29 @@
 package net.soe.shipyardcompanies.shipyards;
 
 public enum CompanyTechFocus {
-    MOBILITY("Mobility Focus:",
+    MOBILITY("Mobility",
             "+ 10% Speed\n" +
             "+ 12% Turn Rate"),
-    DEFENSE("Defense Systems Focus:",
+    DEFENSE("Defense Systems",
             "+ 15% Armor Protection\n" +
             "+ 10% Shield Regen"),
-    MUNITIONS("Munitions Focus:",
+    MUNITIONS("Munitions",
             "+ 10% Cannon Speed\n" +
                     "+ 7% Cannon Penetration\n" +
                     "+ 7% Missile Explosion Size"),
-    ENERGY("Energy Systems Focus:",
+    ENERGY("Energy Systems",
             "+ 10% Beam Range\n" +
                     "+ 7% Reactor HP\n" +
                     "+ 10% Reactor Regen"),
-    AI("AI Systems Focus:",
+    AI("AI Systems",
             "+ 10% AI Range\n" +
                     "+ 15% AI Accuracy"),
-    PHYSICS("Physics Focus:",
+    PHYSICS("Physics",
             "+ 10% Turret Turn Speed\n" +
                     "+ 10% Jump Drive Range\n" +
                     "+ 10% Jump Drive Charge Speed\n" +
                     "+ Jump Drive Autocharge"),
-    INTERCEPTION("Interception Focus:",
+    INTERCEPTION("Interception",
             "+ 10% Scanner Range\n" +
                     "+ 15% Scanner Duration\n" +
                     "+ 1 Scanner Level\n" +
