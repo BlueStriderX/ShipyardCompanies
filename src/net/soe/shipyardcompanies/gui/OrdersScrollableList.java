@@ -53,6 +53,19 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
                 return CompareTools.compare(o1.getPrice(), o2.getPrice());
             }
         });
+
+        this.addButton(new GUICallback() {
+            public void callback(GUIElement guiElement, MouseEvent mouseEvent) {
+                if(mouseEvent.pressedLeftMouse()) {
+                    openProgressWindow();
+                }
+            }
+
+            public boolean isOccluded() {
+                return false;
+            }
+        }, "View Progress", ControllerElement.FilterRowStyle.LEFT, ControllerElement.FilterPos.BOTTOM);
+
         this.addButton(new GUICallback() {
             public void callback(GUIElement guiElement, MouseEvent mouseEvent) {
                 if(mouseEvent.pressedLeftMouse()) {
@@ -66,6 +79,12 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
         }, "Cancel Order", ControllerElement.FilterRowStyle.RIGHT, ControllerElement.FilterPos.BOTTOM);
 
         this.activeSortColumnIndex = 0;
+    }
+
+    private void openProgressWindow() {
+        if(this.selectedRow != null) {
+            //Todo:Open Progress Window
+        }
     }
 
     private void cancelOrder() {
