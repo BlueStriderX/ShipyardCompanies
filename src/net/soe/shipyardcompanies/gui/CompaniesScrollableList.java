@@ -1,23 +1,26 @@
 package net.soe.shipyardcompanies.gui;
 
+import api.faction.Faction;
+import api.main.GameClient;
+import api.main.GameServer;
+import net.soe.shipyardcompanies.ShipyardCompanies;
 import net.soe.shipyardcompanies.shipyards.CompanyTechFocus;
 import net.soe.shipyardcompanies.shipyards.ShipyardCompany;
+import net.soe.shipyardcompanies.shipyards.ShipyardOrder;
 import org.hsqldb.lib.StringComparator;
+import org.schema.game.server.controller.BluePrintController;
 import org.schema.schine.graphicsengine.core.MouseEvent;
-import org.schema.schine.graphicsengine.forms.gui.GUIAncor;
-import org.schema.schine.graphicsengine.forms.gui.GUICallback;
-import org.schema.schine.graphicsengine.forms.gui.GUIElement;
-import org.schema.schine.graphicsengine.forms.gui.GUIElementList;
+import org.schema.schine.graphicsengine.forms.gui.*;
 import org.schema.schine.graphicsengine.forms.gui.newgui.*;
 import org.schema.schine.input.InputState;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Observable;
 import java.util.Set;
 
-public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany> {
+public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany> implements GUIActiveInterface {
 
     private Set<ShipyardCompany> companies;
-    private GUIElementList companiesElementList;
     private CompanyListRow selectedRow;
 
     public CompaniesScrollableList(InputState inputState, float v, float v1, GUIElement guiElement, Set<ShipyardCompany> companies) {
@@ -26,16 +29,15 @@ public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany
         selectedRow = null;
     }
 
-    @Override
     public void initColumns() {
         new StringComparator();
 
-        this.addColumn("NAME", 6.0F, new Comparator<ShipyardCompany>() {
+        this.addColumn("Name", 6.0F, new Comparator<ShipyardCompany>() {
             public int compare(ShipyardCompany o1, ShipyardCompany o2) {
                 return o1.getName().compareTo(o2.getName());
             }
         });
-        this.addColumn("FACTION", 6.0F, new Comparator<ShipyardCompany>() {
+        this.addColumn("Faction", 6.0F, new Comparator<ShipyardCompany>() {
             public int compare(ShipyardCompany o1, ShipyardCompany o2) {
                 String faction1Name = "";
                 String faction2Name = "";
@@ -55,7 +57,7 @@ public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany
                 return faction1Name.compareTo(faction2Name);
             }
         });
-        this.addColumn("FOCUS", 6.0F, new Comparator<ShipyardCompany>() {
+        this.addColumn("Focus", 3.0F, new Comparator<ShipyardCompany>() {
             public int compare(ShipyardCompany o1, ShipyardCompany o2) {
                 return o1.getTechFocus().getDisplayName().compareTo(o2.getTechFocus().getDisplayName());
             }
@@ -71,7 +73,7 @@ public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany
             public boolean isOccluded() {
                 return false;
             }
-        }, "View Clients", ControllerElement.FilterRowStyle.LEFT, ControllerElement.FilterPos.TOP);
+        }, "VIEW CLIENTS", ControllerElement.FilterRowStyle.LEFT, ControllerElement.FilterPos.TOP);
 
         this.addButton(new GUICallback() {
             public void callback(GUIElement guiElement, MouseEvent mouseEvent) {
@@ -83,7 +85,7 @@ public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany
             public boolean isOccluded() {
                 return false;
             }
-        }, "Place Order", ControllerElement.FilterRowStyle.RIGHT, ControllerElement.FilterPos.TOP);
+        }, "PLACE ORDER", ControllerElement.FilterRowStyle.RIGHT, ControllerElement.FilterPos.TOP);
 
         this.addTextFilter(new GUIListFilterText<ShipyardCompany>() {
             public boolean isOk(String s, ShipyardCompany shipyardCompany) {
@@ -92,7 +94,6 @@ public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany
         }, ControllerElement.FilterRowStyle.LEFT);
 
         this.addDropdownFilter(new GUIListFilterDropdown<ShipyardCompany, CompanyTechFocus>(CompanyTechFocus.values()) {
-            @Override
             public boolean isOk(CompanyTechFocus techFocus, ShipyardCompany company) {
                 return company.getTechFocus().equals(techFocus);
             }
@@ -111,7 +112,7 @@ public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany
             public GUIElement createNeutral() {
                 GUIAncor anchor = new GUIAncor(CompaniesScrollableList.this.getState(), 10.0F, 24.0F);
                 GUITextOverlayTableDropDown dropDown;
-                (dropDown = new GUITextOverlayTableDropDown(10, 10, CompaniesScrollableList.this.getState())).setTextSimple("ALL");
+                (dropDown = new GUITextOverlayTableDropDown(10, 10, CompaniesScrollableList.this.getState())).setTextSimple("All");
                 dropDown.setPos(4.0F, 4.0F, 0.0F);
                 anchor.attach(dropDown);
                 return anchor;
@@ -123,23 +124,42 @@ public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany
 
     private void viewClients() {
         if(this.selectedRow != null) {
-            //Todo: View Clients
+            Faction currentFaction = new Faction(GameServer.getServerState().getFactionManager().getFaction(GameClient.getClientPlayerState().getFactionId()));
+            ViewClientsWindow clientsWindow = new ViewClientsWindow(this.getState(), selectedRow.getCompany(), currentFaction);
+
         }
     }
 
     private void placeOrder() {
         if(this.selectedRow != null) {
             //Todo:Place Order GUI
+
+            //Debug Testing:
+            ShipyardCompany testCompany = selectedRow.getCompany();
+            Faction testFaction = new Faction(GameServer.getServerState().getFactionManager().getFaction(GameClient.getClientPlayerState().getFactionId()));
+            ShipyardOrder testOrder = new ShipyardOrder(testCompany, testFaction, BluePrintController.stationsNeutral.readBluePrints().get(1),300000);
+            testCompany.placeOrder(testOrder, testFaction);
+            ShipyardCompanies.getInst().addOrder(testFaction, testOrder);
+            this.flagDirty();
         }
     }
 
     @Override
+    public void update(Observable var1, Object var2) {
+        super.update(var1, var2);
+        this.companies.clear();
+        this.companies.addAll(ShipyardCompanies.getInst().getCompanies());
+        this.flagDirty();
+    }
+
     protected Collection<ShipyardCompany> getElementList() {
         return companies;
     }
 
-    @Override
     public void updateListEntries(GUIElementList guiElementList, Set<ShipyardCompany> set) {
+        guiElementList.deleteObservers();
+        guiElementList.addObserver(this);
+
         for(ShipyardCompany company : set) {
 
             GUITextOverlayTable nameTextElement;
@@ -163,14 +183,20 @@ public class CompaniesScrollableList extends ScrollableTableList<ShipyardCompany
             GUIClippedRow focusRowElement;
             (focusRowElement = new GUIClippedRow(this.getState())).attach(focusTextElement);
 
-
-            CompanyListRow companyListRow;
-            (companyListRow = new CompanyListRow(this.getState(), company, nameRowElement, factionRowElement, focusRowElement)).onInit();
+            GUIAncor anchor = new GUIAncor(this.getState());
+            anchor.onInit();
+            anchor.setHeight(150);
+            GUITextOverlayTableInnerDescription focusDescription;
+            (focusDescription = new GUITextOverlayTableInnerDescription(50, 150, this.getState())).setTextSimple(company.getDescription() + "\n" + "Effects:" + "\n" + company.getTechFocus().getDescription());
+            anchor.attach(focusDescription);
+            CompanyListRow companyListRow = new CompanyListRow(this.getState(), company, nameRowElement, factionRowElement, focusRowElement);
+            companyListRow.expanded = new GUIElementList(this.getState());
+            companyListRow.expanded.height = 150;
+            companyListRow.expanded.add(new GUIListElement(anchor, anchor, this.getState()));
+            companyListRow.onInit();
             guiElementList.addWithoutUpdate(companyListRow);
         }
-        companies = set;
-        companiesElementList = guiElementList;
-        companiesElementList.updateDim();
+        guiElementList.updateDim();
     }
 
     class CompanyListRow extends ScrollableTableList<ShipyardCompany>.Row {

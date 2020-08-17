@@ -1,5 +1,9 @@
 package net.soe.shipyardcompanies.gui;
 
+import api.faction.Faction;
+import api.main.GameClient;
+import api.main.GameServer;
+import net.soe.shipyardcompanies.ShipyardCompanies;
 import net.soe.shipyardcompanies.shipyards.ShipyardOrder;
 import org.hsqldb.lib.StringComparator;
 import org.schema.common.util.CompareTools;
@@ -16,7 +20,6 @@ import java.util.*;
 public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
 
     private Set<ShipyardOrder> orders;
-    private GUIElementList ordersElementList;
     private OrderListRow selectedRow;
 
     public OrdersScrollableList(InputState inputState, float v, float v1, GUIElement guiElement, Set<ShipyardOrder> orders) {
@@ -28,27 +31,27 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
     @Override
     public void initColumns() {
         new StringComparator();
-        this.addColumn("STATUS", 1.5F, new Comparator<ShipyardOrder>() {
+        this.addColumn("Status", 1.5F, new Comparator<ShipyardOrder>() {
             public int compare(ShipyardOrder o1, ShipyardOrder o2) {
                 return CompareTools.compare(o1.getCompletionPercent(), o2.getCompletionPercent());
             }
         });
-        this.addColumn("DESIGNER", 6.0F, new Comparator<ShipyardOrder>() {
+        this.addColumn("Designer", 6.0F, new Comparator<ShipyardOrder>() {
             public int compare(ShipyardOrder o1, ShipyardOrder o2) {
                 return o1.getDesigner().getName().compareTo(o2.getDesigner().getName());
             }
         });
-        this.addColumn("BLUEPRINT", 10.0F, new Comparator<ShipyardOrder>() {
+        this.addColumn("Blueprint", 10.0F, new Comparator<ShipyardOrder>() {
             public int compare(ShipyardOrder o1, ShipyardOrder o2) {
                 return o1.getBlueprint().getName().compareTo(o2.getBlueprint().getName());
             }
         });
-        this.addColumn("MASS", 2.0F, new Comparator<ShipyardOrder>() {
+        this.addColumn("Mass", 2.0F, new Comparator<ShipyardOrder>() {
             public int compare(ShipyardOrder o1, ShipyardOrder o2) {
                 return CompareTools.compare(o1.getBlueprint().getMass(), o2.getBlueprint().getMass());
             }
         });
-        this.addColumn("PRODUCTION COST", 4.0F, new Comparator<ShipyardOrder>() {
+        this.addColumn("Production Cost", 4.0F, new Comparator<ShipyardOrder>() {
             public int compare(ShipyardOrder o1, ShipyardOrder o2) {
                 return CompareTools.compare(o1.getPrice(), o2.getPrice());
             }
@@ -64,7 +67,7 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
             public boolean isOccluded() {
                 return false;
             }
-        }, "View Progress", ControllerElement.FilterRowStyle.LEFT, ControllerElement.FilterPos.BOTTOM);
+        }, "VIEW PROGRESS", ControllerElement.FilterRowStyle.LEFT, ControllerElement.FilterPos.BOTTOM);
 
         this.addButton(new GUICallback() {
             public void callback(GUIElement guiElement, MouseEvent mouseEvent) {
@@ -76,7 +79,7 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
             public boolean isOccluded() {
                 return false;
             }
-        }, "Cancel Order", ControllerElement.FilterRowStyle.RIGHT, ControllerElement.FilterPos.BOTTOM);
+        }, "CANCEL ORDER", ControllerElement.FilterRowStyle.RIGHT, ControllerElement.FilterPos.BOTTOM);
 
         this.activeSortColumnIndex = 0;
     }
@@ -90,18 +93,20 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
     private void cancelOrder() {
         if(this.selectedRow != null) {
             orders.remove(selectedRow.getOrder());
-            updateListEntries(ordersElementList, orders);
-            //Todo:Cancel Order
+            ShipyardCompanies.getInst().removeOrder(selectedRow.getOrder().getCustomer(), selectedRow.getOrder());
+            selectedRow.getOrder().getDesigner().cancelOrder(selectedRow.getOrder(), selectedRow.getOrder().getCustomer());
+            this.flagDirty();
         }
     }
 
-    @Override
     protected Collection<ShipyardOrder> getElementList() {
         return orders;
     }
 
-    @Override
     public void updateListEntries(GUIElementList guiElementList, Set<ShipyardOrder> set) {
+        guiElementList.deleteObservers();
+        guiElementList.addObserver(this);
+
         for(ShipyardOrder order : set) {
 
             GUITextOverlayTable statusTextElement;
@@ -133,17 +138,22 @@ public class OrdersScrollableList extends ScrollableTableList<ShipyardOrder> {
             (orderListRow = new OrderListRow(this.getState(), order, statusRowElement, designerRowElement, blueprintRowElement, massRowElement, costRowElement)).onInit();
             guiElementList.addWithoutUpdate(orderListRow);
         }
-        orders = set;
-        ordersElementList = guiElementList;
-        ordersElementList.updateDim();
+        guiElementList.updateDim();
     }
 
     @Override
+    public void update(Observable var1, Object var2) {
+        super.update(var1, var2);
+        Faction faction = new Faction(GameServer.getServerState().getFactionManager().getFaction(GameClient.getClientPlayerState().getFactionId()));
+        this.orders.clear();
+        this.orders.addAll(ShipyardCompanies.getInst().getOrders().get(faction));
+        this.flagDirty();
+    }
+
     public void cleanUp() {
         super.cleanUp();
     }
 
-    @Override
     public void draw() {
         super.draw();
     }

@@ -1,7 +1,9 @@
 package net.soe.shipyardcompanies.shipyards;
 
 import api.faction.Faction;
+import net.soe.shipyardcompanies.ShipyardCompanies;
 import org.schema.game.server.data.simulation.npc.NPCFaction;
+import java.util.ArrayList;
 
 public class ShipyardCompany {
 
@@ -11,6 +13,8 @@ public class ShipyardCompany {
     private String name;
     private String description;
     private CompanyTechFocus techFocus;
+    private ArrayList<ShipyardOrder> orders;
+    private ArrayList<Faction> clients;
 
     public ShipyardCompany(Faction ownerFaction, String name, String description, CompanyTechFocus techFocus) {
         this.ownerFaction = ownerFaction;
@@ -19,6 +23,8 @@ public class ShipyardCompany {
         this.techFocus = techFocus;
         ownerNPCFaction = null;
         npcOwned = false;
+        orders = new ArrayList<ShipyardOrder>();
+        clients = new ArrayList<Faction>();
     }
 
     public ShipyardCompany(NPCFaction ownerNPCFaction, String name, String description, CompanyTechFocus techFocus) {
@@ -28,6 +34,28 @@ public class ShipyardCompany {
         this.techFocus = techFocus;
         ownerFaction = null;
         npcOwned = true;
+        orders = new ArrayList<ShipyardOrder>();
+        clients = new ArrayList<Faction>();
+    }
+
+    public ArrayList<ShipyardOrder> getOrders() {
+        return orders;
+    }
+
+    public void placeOrder(ShipyardOrder order, Faction client) {
+        //Todo: Add Order
+        this.orders.add(order);
+        this.clients.add(client);
+    }
+
+    public void cancelOrder(ShipyardOrder order, Faction client) {
+        //Todo: Remove Order
+        this.orders.remove(order);
+        this.orders.remove(client);
+    }
+
+    public ArrayList<Faction> getClients() {
+        return clients;
     }
 
     public Faction getOwnerFaction() {
